@@ -1,0 +1,27 @@
+{
+    "registered_model": "StrokePredictionModel",
+    "production_version": 2,
+    "run_id": "d397b1f9e8484e0aa981c06b333015b6",
+    "model_type": "Random Forest",
+    "dataset": "Stroke Prediction Dataset",
+    "target": "stroke",
+    "preprocessing": "median + mode + one-hot + StandardScaler",
+    "metrics": {
+        "accuracy": 0.9500978473581213,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "roc_auc": 0.7824588477366256
+    },
+    "lifecycle": {
+        "staging": true,
+        "validation": "passed",
+        "production": true
+    },
+    "deployment_readiness": "ready",
+    "traceability": {
+        "mlflow_run_id": "d397b1f9e8484e0aa981c06b333015b6",
+        "model_version": 2,
+        "tracking_database": "mlflow.db"
+    }
+}

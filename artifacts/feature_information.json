@@ -1,0 +1,36 @@
+{
+    "target": "stroke",
+    "number_of_features": 16,
+    "features": [
+        "age",
+        "hypertension",
+        "heart_disease",
+        "avg_glucose_level",
+        "bmi",
+        "gender_Male",
+        "gender_Other",
+        "ever_married_Yes",
+        "work_type_Never_worked",
+        "work_type_Private",
+        "work_type_Self-employed",
+        "work_type_children",
+        "Residence_type_Urban",
+        "smoking_status_formerly smoked",
+        "smoking_status_never smoked",
+        "smoking_status_smokes"
+    ],
+    "categorical_features": [
+        "gender",
+        "ever_married",
+        "work_type",
+        "Residence_type",
+        "smoking_status"
+    ],
+    "numerical_features": [
+        "age",
+        "hypertension",
+        "heart_disease",
+        "avg_glucose_level",
+        "bmi"
+    ]
+}

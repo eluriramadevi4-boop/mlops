@@ -1,0 +1,10 @@
+{
+    "dataset": "Stroke Prediction Dataset",
+    "target": "stroke",
+    "random_state": 42,
+    "models": [
+        "Logistic Regression",
+        "Decision Tree",
+        "Random Forest"
+    ]
+}

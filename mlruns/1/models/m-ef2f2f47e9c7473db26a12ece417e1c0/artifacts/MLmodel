@@ -1,0 +1,25 @@
+artifact_path: file:///C:/Users/Vaishnavi/OneDrive/Documents/Desktop/heart stroke
+  predictions/stroke-prediction/mlruns/1/models/m-ef2f2f47e9c7473db26a12ece417e1c0/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.10.10
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.7.2
+    skops_trusted_types:
+    - sklearn.tree._tree.Tree
+mlflow_version: 3.16.1
+model_id: m-ef2f2f47e9c7473db26a12ece417e1c0
+model_size_bytes: 14339
+model_uuid: m-ef2f2f47e9c7473db26a12ece417e1c0
+prompts: null
+run_id: 33c99956490340e68c2cddc69dfceff2
+utc_time_created: '2026-10-02 08:48:54.698985'

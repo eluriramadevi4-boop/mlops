@@ -1,0 +1,18 @@
+{
+    "dataset_name": "Stroke Prediction Dataset",
+    "dataset_source": "Kaggle - fedesoriano/stroke-prediction-dataset",
+    "problem_type": "Binary Classification",
+    "target_column": "stroke",
+    "raw_data_path": "data/raw/stroke.csv",
+    "train_test_split": {
+        "test_size": 0.2,
+        "random_state": 42,
+        "stratify": true
+    },
+    "preprocessing": {
+        "missing_value_strategy": "median for numerical features and mode for categorical features",
+        "categorical_encoding": "one-hot encoding",
+        "scaling": "StandardScaler",
+        "duplicate_removal": true
+    }
+}

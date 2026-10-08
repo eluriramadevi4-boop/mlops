@@ -1,0 +1,9 @@
+{
+    "registered_model": "StrokePredictionModel",
+    "champion_version": 2,
+    "champion_f1_score": 0.0,
+    "staging_alias": "staging",
+    "production_alias": "production",
+    "validation_status": "passed",
+    "deployment_readiness": "ready"
+}
