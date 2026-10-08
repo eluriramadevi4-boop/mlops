@@ -1,190 +1,85 @@
-import pandas as pd
-import joblib
+import os
 import json
-
+import joblib
+import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import KNNImputer
 
+def run_preprocessing():
+    print("Starting Preprocessing Pipeline...")
+    
+    # 1. Load the raw data
+    data_path = 'data/raw/churn.csv'
+    df = pd.read_csv(data_path)
+    
+    # 2. Data Cleaning
+    df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce').fillna(0)
 
-# ==============================
-# File paths
-# ==============================
+    # 2. Data Cleaning (Experiment: Fill missing TotalCharges with KNN Imputer)
+    # First, force empty strings to NaN
+    # df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+    
+    # # We use tenure and MonthlyCharges to help KNN find the most similar customers
+    # knn_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
+    
+    # print("Applying KNN Imputation")
+    # imputer = KNNImputer(n_neighbors=5)
+    # df[knn_cols] = imputer.fit_transform(df[knn_cols])
 
-DATA_PATH = "data/raw/stroke.csv"
+    if 'customerID' in df.columns:
+        df = df.drop('customerID', axis=1)
+        
+    # Unconditional string to binary integer conversion
+    df['Churn'] = df['Churn'].apply(lambda x: 1 if str(x).strip().lower() == 'yes' else 0).astype(int)
+        
+    X = df.drop('Churn', axis=1)
+    y = df['Churn']
+    
+    # 3. Train-Test Split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    
+    # 4. Separate Column Types
+    cat_cols = X_train.select_dtypes(include=['object', 'category']).columns
+    num_cols = X_train.select_dtypes(include=['int64', 'float64']).columns
+    
+    # 5. Scale & Encode
+    scaler = StandardScaler()
+    x_train_scaled = scaler.fit_transform(X_train[num_cols])
+    x_test_scaled = scaler.transform(X_test[num_cols])
+    
+    ohe = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
+    x_train_encoded = ohe.fit_transform(X_train[cat_cols])
+    x_test_encoded = ohe.transform(X_test[cat_cols])
+    
+    # Combine Features
+    X_train_final = np.hstack((x_train_scaled, x_train_encoded))
+    X_test_final = np.hstack((x_test_scaled, x_test_encoded))
+    
+    # 6. Save Artifacts with explicit integer type casting
+    np.save('data/processed/X_train_final.npy', X_train_final)
+    np.save('data/processed/X_test_final.npy', X_test_final)
+    np.save('data/processed/y_train.npy', y_train.to_numpy(dtype=np.int64))
+    np.save('data/processed/y_test.npy', y_test.to_numpy(dtype=np.int64))
+    
+    joblib.dump(scaler, 'models/scaler.pkl')
+    joblib.dump(ohe, 'models/ohe.pkl')
+    
+    # Save Metadata
+    metadata = {
+        "dataset_name": "Telco Customer Churn",
+        "train_shape": list(X_train_final.shape),
+        "test_shape": list(X_test_final.shape),
+        "numerical_features": list(num_cols),
+        "categorical_features": list(cat_cols)
+    }
+    with open('data/processed/dataset_metadata.json', 'w') as f:
+        json.dump(metadata, f, indent=4)
+        
+    print("Preprocessing completed successfully!")
 
-X_TRAIN_PATH = "data/processed/X_train.csv"
-X_TEST_PATH = "data/processed/X_test.csv"
-Y_TRAIN_PATH = "data/processed/y_train.csv"
-Y_TEST_PATH = "data/processed/y_test.csv"
-
-SCALER_PATH = "models/scaler.pkl"
-
-
-# ==============================
-# Load dataset
-# ==============================
-
-df = pd.read_csv(DATA_PATH)
-
-print("Original dataset shape:", df.shape)
-
-
-# ==============================
-# Remove duplicate rows
-# ==============================
-
-duplicates = df.duplicated().sum()
-
-print("Duplicate rows:", duplicates)
-
-df = df.drop_duplicates()
-
-
-# ==============================
-# Target column
-# ==============================
-
-TARGET = "stroke"
-
-X = df.drop(columns=[TARGET])
-y = df[TARGET]
-
-
-# ==============================
-# Remove ID column
-# ==============================
-
-if "id" in X.columns:
-    X = X.drop(columns=["id"])
-
-
-# ==============================
-# Identify columns
-# ==============================
-
-categorical_columns = X.select_dtypes(
-    include=["object"]
-).columns.tolist()
-
-numerical_columns = X.select_dtypes(
-    include=["int64", "float64"]
-).columns.tolist()
-
-print("\nCategorical columns:")
-print(categorical_columns)
-
-print("\nNumerical columns:")
-print(numerical_columns)
-
-
-# ==============================
-# Handle missing values
-# ==============================
-
-for column in numerical_columns:
-    X[column] = X[column].fillna(X[column].median())
-
-for column in categorical_columns:
-    X[column] = X[column].fillna(X[column].mode()[0])
-
-
-# ==============================
-# One-hot encoding
-# ==============================
-
-X = pd.get_dummies(
-    X,
-    columns=categorical_columns,
-    drop_first=True
-)
-
-
-# ==============================
-# Train-test split
-# ==============================
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42,
-    stratify=y
-)
-
-
-# ==============================
-# Feature scaling
-# ==============================
-
-scaler = StandardScaler()
-
-X_train_scaled = scaler.fit_transform(X_train)
-
-X_test_scaled = scaler.transform(X_test)
-
-
-# Convert back to DataFrame
-X_train_scaled = pd.DataFrame(
-    X_train_scaled,
-    columns=X_train.columns
-)
-
-X_test_scaled = pd.DataFrame(
-    X_test_scaled,
-    columns=X_test.columns
-)
-
-
-# ==============================
-# Save processed data
-# ==============================
-
-X_train_scaled.to_csv(X_TRAIN_PATH, index=False)
-X_test_scaled.to_csv(X_TEST_PATH, index=False)
-
-y_train.to_csv(Y_TRAIN_PATH, index=False)
-y_test.to_csv(Y_TEST_PATH, index=False)
-
-
-# ==============================
-# Save scaler
-# ==============================
-
-joblib.dump(scaler, SCALER_PATH)
-
-
-# ==============================
-# Save feature information
-# ==============================
-
-feature_info = {
-    "target": TARGET,
-    "number_of_features": len(X_train.columns),
-    "features": X_train.columns.tolist(),
-    "categorical_features": categorical_columns,
-    "numerical_features": numerical_columns
-}
-
-with open(
-    "artifacts/feature_information.json",
-    "w"
-) as file:
-    json.dump(feature_info, file, indent=4)
-
-
-# ==============================
-# Output
-# ==============================
-
-print("\nPreprocessing completed successfully.")
-
-print("Training data shape:", X_train_scaled.shape)
-print("Testing data shape:", X_test_scaled.shape)
-
-print("\nSaved files:")
-print("X_train:", X_TRAIN_PATH)
-print("X_test:", X_TEST_PATH)
-print("y_train:", Y_TRAIN_PATH)
-print("y_test:", Y_TEST_PATH)
-print("Scaler:", SCALER_PATH)
-print("Feature information: artifacts/feature_information.json")
+if __name__ == "__main__":
+    run_preprocessing()
